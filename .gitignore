@@ -59,3 +59,5 @@ target/
 
 user.ini
 client_secret.json
+test.py
+*.json

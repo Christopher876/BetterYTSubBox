@@ -2,7 +2,7 @@ import os
 from configparser import ConfigParser
 import time
 from dateutil.parser import parse as date_parse
-from datetime import date 
+from datetime import date,timezone,datetime 
 import json
 
 import google.oauth2.credentials
@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-from youtube import SubscriptionsList,ChannelUploads
+from youtube import SubscriptionsList,Channel,get_subscriptions
 
 # The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
 # the OAuth 2.0 information for this application, including its client_id and
@@ -27,6 +27,8 @@ API_VERSION = 'v3'
 #Class for google authentication
 class Authentication:
     def __init__(self):
+        """Create the authentication object and save load all that is necessary
+        """
         exist = os.path.isfile('./user.ini')
         if exist:
             config = ConfigParser()
@@ -38,7 +40,16 @@ class Authentication:
             self.client_id = config['YouTube']['client_id']
             self.client_secret = config['YouTube']['client_secret']
         else:
-            pass    
+            self.get_authenticated_service()
+            
+    def get_authenticated_service(self):
+        """Get the first authentication from Google if the user.ini file does not exist
+        or if something in the user.ini is not working
+        """
+        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        credentials = flow.run_console()
+        authentication.save_auth_info(credentials)
+        return build(API_SERVICE_NAME, API_VERSION, credentials = credentials)    
     
     #Check if token expired and get a new one
     def check_auth_token(self):
@@ -105,64 +116,18 @@ def save_to_json(outfile, jsonfile):
     with open(outfile,'w') as out:
         json.dump(jsonfile,out)
 
-def get_authenticated_service():
-    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    credentials = flow.run_console()
-    authentication.save_auth_info(credentials)
-    return build(API_SERVICE_NAME, API_VERSION, credentials = credentials)
-
-def get_channel_videos(service,**kwargs):
-    response = service.channels().list(**kwargs).execute()
-    playlist = service.playlistItems().list(
-        part='contentDetails',
-        maxResults=25,
-        playlistId='PLOU2XLYxmsIKiWaPpfAT60S86NDTa5oAC'
-    ).execute()
-    uploads = ChannelUploads(playlist)
-
-    return response
-
-def get_subscriptions(service,**kwargs):
-    """Get all of the user's subscriptions
-        Creates a new subscriptions list object and then adds all of the channel ids to it
-    """
-
-    subscriptions = service.subscriptions().list(
-        part='snippet',
-        mine=True,
-        order='alphabetical',
-        **kwargs
-    ).execute()
-
-    subs = SubscriptionsList()
-    subs.add_channel_to_list(subscriptions)
-    
-    while True:    
-        subscriptions = service.subscriptions().list(
-            part='snippet',
-            mine=True,
-            order='alphabetical',
-            pageToken=subscriptions['nextPageToken'],
-            **kwargs
-        ).execute()
-        subs.add_channel_to_list(subscriptions)
-
-        if 'nextPageToken' not in subscriptions:
-            subs.add_channel_to_list(subscriptions)
-            break
-    subs.print_all()
-    
-    return subs
-
 if __name__ == '__main__':
     authentication = Authentication()
+    channel = Channel()
 
   # When running locally, disable OAuthlib's HTTPs verification. When
   # running in production *do not* leave this option enabled.
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     service = authentication.check_auth_token()
-    #get_channel_videos(service,part='contentDetails',id='UC_x5XG1OV2P6uZZ5FSM9Ttw')
-    get_subscriptions(service=service,maxResults=50)
-    #v = date_parse('2019-03-27T00:02:58.000Z')
-    #print(v.date())
-    #print(date.today())
+    subs = get_subscriptions(service=service,maxResults=50)
+    print(f'subscriptions_length={len(subs.subscribedChannels)}') 
+    channel.get_uploads_playlist(service,subs)
+
+    #Create a time
+    date_filter = date(2019,4,3)
+    channel.get_channel_videos(service,date_filter)

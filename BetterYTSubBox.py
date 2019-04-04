@@ -120,9 +120,6 @@ if __name__ == '__main__':
     authentication = Authentication()
     channel = Channel()
 
-  # When running locally, disable OAuthlib's HTTPs verification. When
-  # running in production *do not* leave this option enabled.
-    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     service = authentication.check_auth_token()
     subs = get_subscriptions(service=service,maxResults=50)
     print(f'subscriptions_length={len(subs.subscribedChannels)}') 

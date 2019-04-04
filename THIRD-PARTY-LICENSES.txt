@@ -1,0 +1,9 @@
+This software includes third party open source software components: PyChromecast, google_auth_oauthlib, python_dateutil, protobuf, and google_api_python_client. 
+
+Each of these software components have their own license. Please see Licenses/PyChromecast_License.txt, Licenses/google_auth_oauthlib_License.txt, Licenses/python_dateutil_License.txt, Licenses/protobuf_License.txt and Licenses/google_api_python_client_License.txt.
+
+PyChromecast = https://github.com/balloob/pychromecast
+google_auth_oauthlib = https://github.com/googleapis/google-auth-library-python-oauthlib
+python_dateutil = https://github.com/dateutil/dateutil
+protobuf = https://github.com/protocolbuffers/protobuf/tree/master/python
+google_api_python_client = https://github.com/googleapis/google-api-python-client

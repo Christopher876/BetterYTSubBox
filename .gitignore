@@ -59,6 +59,8 @@ target/
 
 user.ini
 client_secret.json
+uploads.json
+uploads.txt
 test.py
 *.json
 *.bak

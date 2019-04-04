@@ -120,11 +120,16 @@ if __name__ == '__main__':
     authentication = Authentication()
     channel = Channel()
 
-    service = authentication.check_auth_token()
-    subs = get_subscriptions(service=service,maxResults=50)
-    print(f'subscriptions_length={len(subs.subscribedChannels)}') 
-    channel.get_uploads_playlist(service,subs)
+    if channel.check_uploads_playlist_refresh() is True:
+        service = authentication.check_auth_token()
+        subs = get_subscriptions(service=service,maxResults=50)
+        print(f'subscriptions_length={len(subs.subscribedChannels)}') 
+        channel.get_uploads_playlist(service,subs)
 
-    #Create a time
-    date_filter = date(2019,4,3)
-    channel.get_channel_videos(service,date_filter)
+        #Create a time
+        date_filter = date(2019,4,3) #TODO needs a config option or a command line option
+        channel.get_channel_videos(service,datetime)
+
+    else:
+        service = authentication.check_auth_token()
+        channel.get_channel_videos(service,'2019-4-3')

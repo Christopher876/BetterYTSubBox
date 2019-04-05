@@ -1,6 +1,7 @@
 from dateutil.parser import parse as date_parse
 from datetime import datetime
 from progressbar import progress as pg
+from progressbar import progress_without_bar as pgb
 from os import path
 import json
 from time import time
@@ -60,9 +61,27 @@ def save_uploads_playlist_to_txt(uploads : []):
                 outfile.write(upload + '\n')
     else:
         with open('uploads.txt','w') as outfile:
-            outfile.write('Created:' + str(time()) + '\n')
+            outfile.write('Created: ' + str(time()) + '\n')
             for upload in uploads:
                 outfile.write(upload + '\n')
+
+def load_local_videos():
+    exist = path.isfile('./videos.json')
+    video_urls = {}
+
+    if exist:
+        json_file = None
+        with open('videos.json','r') as infile:
+            json_file = json.load(infile)
+        
+        for content in json_file:
+            video_urls[content] = json_file[content]
+        
+        return video_urls
+
+    else:
+        print('There are no local video playlists stored here. Exitting....')
+        exit(1)
 
 class SubscriptionsList:
     subscribedChannels = []
@@ -82,6 +101,23 @@ class SubscriptionsList:
 
 class Channel:
 
+    def __init__(self):
+        pass
+
+    def get_subscriptions_from_txt(self):
+        subscriptions = []
+        exist = path.isfile('./uploads.txt')
+        if exist:
+            with open('./uploads.txt') as inflile:
+                inflile.readline()
+                for line in inflile:
+                    subscriptions.append(line)
+            return subscriptions
+
+        #Handle if uploads does not exist    
+        else:
+            pass
+
     def check_uploads_playlist_refresh(self):
         """Check if the uploads playlist needs to be refreshed by checking if the current time is greater than a day plus the file creation date.
         """
@@ -92,7 +128,7 @@ class Channel:
         print('Uploads File creation date: ' + str(datetime.utcfromtimestamp(float(file_created_time))))
 
         if time() > file_created_time + 86400:
-            if input('Would you like to fetch a set of uploads?') is 'y':
+            if input('Would you like to fetch a new set of uploads?') is 'y':
                 return True
             else:
                 with open('uploads.txt') as infile:
@@ -113,18 +149,35 @@ class Channel:
         """Get the playlist that contains a channel's uploads and then save all of the playlists that it finds to a .txt file
         """
         self.uploads = []
-        total = len(channels.subscribedChannels)
-        progress = 0
+
+        if type(channels) is SubscriptionsList:
+            total = len(channels.subscribedChannels)
+            progress = 0
+
+            #Get all of the subscription channels and this function takes quite a bit of time...
+            for channel in channels.subscribedChannels:
+                pg(progress,total,status='Getting the uploads playlist')
+                uploads = service.channels().list(
+                    part='contentDetails',
+                    id=channel
+                ).execute()
+                self.uploads.append(uploads['items'][0]['contentDetails']['relatedPlaylists']['uploads'])
+                progress += 1
         
-        #Get all of the subscription channels and this function takes quite a bit of time...
-        for channel in channels.subscribedChannels:
-            pg(progress,total,status='Getting the uploads playlist')
-            uploads = service.channels().list(
-                part='contentDetails',
-                id=channel
-            ).execute()
-            self.uploads.append(uploads['items'][0]['contentDetails']['relatedPlaylists']['uploads'])
-            progress += 1
+        elif type(channels) is list:
+            total = len(channels)
+            progress = 0
+
+            #Get all of the subscription channels and this function takes quite a bit of time...
+            for channel in channels:
+                pg(progress,total,status='Getting the uploads playlist')
+                uploads = service.channels().list(
+                    part='contentDetails',
+                    id=channel
+                ).execute()
+                self.uploads.append(uploads['items'][0]['contentDetails']['relatedPlaylists']['uploads'])
+                progress += 1
+
         save_uploads_playlist_to_txt(self.uploads)
 
     
@@ -146,9 +199,9 @@ class Channel:
             
             #Filter out videos that are lower than the provided filter date
             for video in uploads['items']:
-                if date_parse(video['contentDetails']['videoPublishedAt']).replace(tzinfo=None) >= date_parse(filter_by_date):
+                if date_parse(video['contentDetails']['videoPublishedAt']).replace(tzinfo=None) >= date_parse(str(filter_by_date)):
                     videos[video['snippet']['title']] = video['contentDetails']['videoId']
                     single_video = (str(i) + ')  ' + video['snippet']['title'] + '  ' + video['contentDetails']['videoId'])
-                    print(single_video)
+                    pgb(i,f"\r Received {i} videos...")
                     i += 1
         save_videos_to_json(videos)

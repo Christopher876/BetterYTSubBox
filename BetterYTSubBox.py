@@ -11,7 +11,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-from youtube import SubscriptionsList,Channel,get_subscriptions
+from youtube import SubscriptionsList,Channel,get_subscriptions, load_local_videos
+from setup import Setup
+from google_chromecast import Chromecast
 
 # The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
 # the OAuth 2.0 information for this application, including its client_id and
@@ -119,17 +121,61 @@ def save_to_json(outfile, jsonfile):
 if __name__ == '__main__':
     authentication = Authentication()
     channel = Channel()
-
-    if channel.check_uploads_playlist_refresh() is True:
-        service = authentication.check_auth_token()
+    setup = Setup()
+    chromecast = Chromecast()
+    
+    service = authentication.check_auth_token()
+    subs = None
+    if setup.args.new is True:
+        print('Getting new subscription channels')
         subs = get_subscriptions(service=service,maxResults=50)
-        print(f'subscriptions_length={len(subs.subscribedChannels)}') 
         channel.get_uploads_playlist(service,subs)
-
-        #Create a time
-        date_filter = date(2019,4,3) #TODO needs a config option or a command line option
-        channel.get_channel_videos(service,datetime)
-
+    
     else:
-        service = authentication.check_auth_token()
-        channel.get_channel_videos(service,'2019-4-3')
+        print("Using local subscription channels")
+        channel.check_uploads_playlist_refresh()
+        subs = channel.get_subscriptions_from_txt()
+
+    videos = {}
+    if setup.args.list is True:
+        videos = load_local_videos()
+
+        i = 0
+        for video in videos:
+            print(str(i) + ') ' + video)
+            i += 1
+    else:
+        channel.get_channel_videos(service,setup.args.filter.date())
+    
+    #Set videos to a list so that it can be selected by index
+    videos = list(videos.values())
+    while(True):
+        #TODO add option to refresh the subscriptions list
+        uInput = input('> ')
+        if uInput == 'exit':
+            exit(1)
+        if uInput == 'help':
+            print('"exit" = exit from program\n \
+                "new" without args = fetch new videos with defined filter before launching program\n \
+                "new" with same way filter is used = fetch new videos with new defined filter arg')
+        
+        #Get a new set of uploads
+        if uInput == 'new':
+            channel.get_channel_videos(service,setup.args.filter.date())
+            videos = load_local_videos()
+
+            i = 0
+            for video in videos:
+                print(str(i) + ') ' + video)
+                i += 1
+
+        if 'new' in uInput and len(uInput) > 1:
+            filter_date = datetime.fromtimestamp(time.time() - float(uInput.split()[1]) * 86400).date() 
+            print('Getting a new set of uploads with the filter date of ' + str(filter_date))
+            channel.get_channel_videos(service,filter_date)
+
+        #Cast to Google Chromecast the video that should be played   
+        elif uInput.isdigit():     
+            chromecast.play_youtube_video(videos[int(uInput)])
+        
+        

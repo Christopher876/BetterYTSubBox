@@ -4,6 +4,9 @@ from configparser import ConfigParser
 import os
 import time
 
+def test():
+    print('nothing')
+
 class Chromecast:
     def __init__(self):
         """Creates a new Chromecast by checking the user.ini for the device or creating a new entry in the config file
@@ -39,6 +42,7 @@ class Chromecast:
         else:
             chromecasts = pychromecast.get_chromecasts()
             if len(chromecasts) is not 1:
+                #TODO add support for selecting one out of all of the chromecasts
                 print(chromecasts)
             else:
                 print(f"Selected {chromecasts[0]}")

@@ -19,4 +19,4 @@ This project uses third party libraries and as such there are [licenses](THIRD-P
 - Still a little bit to do and this list may or may not grow
 - A UI needs to be added
 - Selecting and Queuing videos to play back to back
-- Command line options to change different things
+- ~~Command line options to change different things~~ Has been added

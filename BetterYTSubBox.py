@@ -133,9 +133,8 @@ if __name__ == '__main__':
     
     else:
         print("Using local subscription channels")
-        channel.check_uploads_playlist_refresh()
         subs = channel.get_subscriptions_from_txt()
-
+    
     videos = {}
     if setup.args.list is True:
         videos = load_local_videos()
@@ -145,6 +144,7 @@ if __name__ == '__main__':
             print(str(i) + ') ' + video)
             i += 1
     else:
+        channel.check_uploads_playlist_refresh()
         channel.get_channel_videos(service,setup.args.filter.date())
     
     #Set videos to a list so that it can be selected by index

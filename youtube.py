@@ -128,22 +128,11 @@ class Channel:
         print('Uploads File creation date: ' + str(datetime.utcfromtimestamp(float(file_created_time))))
 
         if time() > file_created_time + 86400:
-            if input('Would you like to fetch a new set of uploads?') is 'y':
-                return True
-            else:
-                with open('uploads.txt') as infile:
-                    self.uploads = []
-                    infile.readline()
-                    for line in infile:
-                        self.uploads.append(line)
-                return False
-        else:
             with open('uploads.txt') as infile:
                 self.uploads = []
                 infile.readline()
                 for line in infile:
                     self.uploads.append(line)
-            return False
     
     def get_uploads_playlist(self,service,channels):
         """Get the playlist that contains a channel's uploads and then save all of the playlists that it finds to a .txt file

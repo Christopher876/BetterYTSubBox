@@ -3,9 +3,10 @@ from pychromecast.controllers.youtube import YouTubeController
 from configparser import ConfigParser
 import os
 import time
+import logging
 
-def test():
-    print('nothing')
+#Disable the warning that the chromecast library will put out since we won't be using a cached one
+logging.getLogger('googleapiclient').setLevel(logging.CRITICAL)
 
 class Chromecast:
     def __init__(self):

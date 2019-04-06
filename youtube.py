@@ -191,6 +191,7 @@ class Channel:
                 if date_parse(video['contentDetails']['videoPublishedAt']).replace(tzinfo=None) >= date_parse(str(filter_by_date)):
                     videos[video['snippet']['title']] = video['contentDetails']['videoId']
                     single_video = (str(i) + ')  ' + video['snippet']['title'] + '  ' + video['contentDetails']['videoId'])
-                    pgb(i,f"\r Received {i} videos...")
+                    pgb(i,f"\rReceived {i} videos...")
                     i += 1
         save_videos_to_json(videos)
+        return videos

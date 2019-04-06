@@ -145,20 +145,40 @@ if __name__ == '__main__':
             i += 1
     else:
         channel.check_uploads_playlist_refresh()
-        channel.get_channel_videos(service,setup.args.filter.date())
+        videos = channel.get_channel_videos(service,setup.args.filter.date())
+        
+        #Get on the new line from when updating the same line-
+        print('\n')
+        i = 0
+        for video in videos:
+            print(str(i) + ') ' + str(video.value()))
+            i += 1
     
     #Set videos to a list so that it can be selected by index
     videos = list(videos.values())
+
     while(True):
-        #TODO add option to refresh the subscriptions list
         uInput = input('> ')
         if uInput == 'exit':
             exit(1)
         if uInput == 'help':
-            print('"exit" = exit from program\n \
-                "new" without args = fetch new videos with defined filter before launching program\n \
-                "new" with same way filter is used = fetch new videos with new defined filter arg')
+            print('"exit" = exit from program\n\
+            "new" without args = fetch new videos with defined filter before launching program\n \
+            "new" with same way filter is used = fetch new videos with new defined filter arg')
         
+        #Get new videos from subscriptions
+        if uInput == 'ls':
+            try:
+                channel.get_channel_videos(service,setup.args.filter.date())
+            except AttributeError:
+                channel.check_uploads_playlist_refresh()
+                channel.get_channel_videos(service,setup.args.filter.date())
+            
+            i = 0
+            for video in videos:
+                print(str(i) + ') ' + video)
+                i += 1
+
         #Get a new set of uploads
         if uInput == 'new':
             channel.get_channel_videos(service,setup.args.filter.date())

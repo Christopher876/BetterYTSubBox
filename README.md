@@ -10,13 +10,18 @@ This project uses third party libraries and as such there are [licenses](THIRD-P
 
 # Usage
 
-- Setup a new Youtube Api Project on https://console.developers.google.com/
-- Download the file and rename it to "client_secret.json" and put it in the root directory of the project
-- Launch the project
+* Setup a new Youtube Api Project on https://console.developers.google.com/
+* Download the file and rename it to "client_secret.json" and put it in the root directory of the project
+* Launch the project with these commands: **NOTE: Just relaunch if it does not start the first time**
+  * -l = fetches a new set of uploads
+  * -n = fetches a new set of subscriptions
+  * -f = Used with -l and it filter videos by setting the minimum date that the program should look at, for example, you would put 2 to filter by today's date - 2
+* Select a video and enjoy watch it casting to your tv
 
 # TO DO
 
-- Still a little bit to do and this list may or may not grow
-- A UI needs to be added
-- Selecting and Queuing videos to play back to back
-- ~~Command line options to change different things~~ Has been added
+- Select 1 from multiple Chromecasts if there are many
+- Select using VLC or casting to a Chromecast or opening in browser
+- A GUI needs to be added - PyQT will be used or rewriting in C++ so that the code running everything can be cross platform
+- Selecting and Queuing videos to play back to back **This will not be added to the Command line program and instead will be added to the version using the GUI**
+- ~~Command line options to change different things~~ **Has been added**

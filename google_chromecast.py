@@ -22,7 +22,13 @@ class Chromecast:
             self.get_chromecast()
 
             #Create the chromecast object
-            self.chromecast = pychromecast.Chromecast(host=self.chromecast_info['main_chromecast_host'],port=int(self.chromecast_info['main_chromecast_port']))
+
+            #Try 3 times to get the chromecast_info
+            for i in range(3):
+                try:
+                    self.chromecast = pychromecast.Chromecast(host=self.chromecast_info['main_chromecast_host'],port=int(self.chromecast_info['main_chromecast_port']))
+                except AttributeError:
+                    continue
             self.chromecast.wait()
 
             self.yt_controller = YouTubeController()

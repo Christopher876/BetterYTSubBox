@@ -15,6 +15,9 @@ from youtube import SubscriptionsList,Channel,get_subscriptions, load_local_vide
 from setup import Setup
 from google_chromecast import Chromecast
 
+from PyInquirer import prompt
+from examples import custom_style_2
+
 # The CLIENT_SECRETS_FILE variable specifies the name of a file that contains
 # the OAuth 2.0 information for this application, including its client_id and
 # client_secret.
@@ -118,45 +121,7 @@ def save_to_json(outfile, jsonfile):
     with open(outfile,'w') as out:
         json.dump(jsonfile,out)
 
-if __name__ == '__main__':
-    authentication = Authentication()
-    channel = Channel()
-    setup = Setup()
-    chromecast = Chromecast()
-    
-    service = authentication.check_auth_token()
-    subs = None
-    if setup.args.new is True:
-        print('Getting new subscription channels')
-        subs = get_subscriptions(service=service,maxResults=50)
-        channel.get_uploads_playlist(service,subs)
-    
-    else:
-        print("Using local subscription channels")
-        subs = channel.get_subscriptions_from_txt()
-    
-    videos = {}
-    if setup.args.list is True:
-        videos = load_local_videos()
-
-        i = 0
-        for video in videos:
-            print(str(i) + ') ' + video)
-            i += 1
-    else:
-        channel.check_uploads_playlist_refresh()
-        videos = channel.get_channel_videos(service,setup.args.filter.date())
-        
-        #Get on the new line from when updating the same line-
-        print('\n')
-        i = 0
-        for video in videos:
-            print(str(i) + ') ' + str(video.value()))
-            i += 1
-    
-    #Set videos to a list so that it can be selected by index
-    videos = list(videos.values())
-
+def cmd(videos):
     while(True):
         uInput = input('> ')
         if uInput == 'exit':
@@ -197,5 +162,58 @@ if __name__ == '__main__':
         #Cast to Google Chromecast the video that should be played   
         elif uInput.isdigit():     
             chromecast.play_youtube_video(videos[int(uInput)])
+
+if __name__ == '__main__':
+    authentication = Authentication()
+    channel = Channel()
+    setup = Setup()
+    chromecast = Chromecast()
+    
+    service = authentication.check_auth_token()
+    subs = None
+    if setup.args.new is True:
+        print('Getting new subscription channels')
+        subs = get_subscriptions(service=service,maxResults=50)
+        channel.get_uploads_playlist(service,subs)
+    
+    else:
+        print("Using local subscription channels")
+        subs = channel.get_subscriptions_from_txt()
+    
+    videos = {}
+    if setup.args.list is True:
+        channel.check_uploads_playlist_refresh()
+        videos = channel.get_channel_videos(service,setup.args.filter.date())
         
+        #Get on the new line from when updating the same line-
+        print('\n')
+        i = 0
+        for video in videos.keys():
+            print(str(i) + ') ' + str(video))
+            i += 1
+    else:
+        videos = load_local_videos()
+
+        i = 0
+        for video in videos:
+            print(str(i) + ') ' + video)
+            i += 1
+
+    #Video Selection
+    upload_videos = [
+        {
+            'type':'list',
+            'name':'videos',
+            'message':'Select a video to cast',
+            'choices':videos.keys()
+        }
+    ]
+
+    while(True):
+        try : 
+            video_choice = prompt(upload_videos,style=custom_style_2)
+            os.system('clear')
+            chromecast.play_youtube_video(videos[video_choice['videos']])
         
+        #When ctrl+c is pressed, prevent chromecast from spewing out this    
+        except KeyError: exit(1)
